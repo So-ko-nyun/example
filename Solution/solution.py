@@ -10,7 +10,6 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from time import sleep
-from test_solution import *
 import requests
 
 
@@ -90,9 +89,6 @@ def extract_data_from_webpage(url):
     solution_id = soup.find("span", {"class": "badge-item badge-item-expand"}).decode_contents()
     title = soup.find("p", class_= "ecx-page-title-white undefined mb-0").decode_contents() #.find("p", class_= "ecx-page-title-white undefined mb-0")
     
-    print(div_tags,"\n\n\n\n")
-    print(solution_id,"\n\n\n\n")
-    print("zzz", title,"\n\n\n\n")
 
     # 각 <div> 태그 안의 모든 내용을 추출합니다.
     def extract_content(div_elements):
@@ -111,13 +107,6 @@ def extract_data_from_webpage(url):
     }
 
     return data
-
-
-url = "https://support.broadcom.com/web/ecx/solutiondetails?patchId=5235"
-
-data = extract_data_from_webpage(url)
-
-print(data)
 
 
 

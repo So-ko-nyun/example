@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup
 from time import sleep
 from test_productnews import *
 
+# productnews카테고리
+
 def is_before_start_date(date, start_date):
     return date < start_date
 
@@ -134,9 +136,8 @@ def crawl_posts(base_url, start_date_str, end_date_str):
         #print(get_post_details(post.get('url')))
         
         url = post.get('url')
-        date = post.get('date')
         if extract_data_from_webpage(url) is not None:
-            all_posts_details.append(extract_data_from_webpage(url, date))
+            all_posts_details.append(extract_data_from_webpage(url))
         else:
             continue    
         print("-----------------------------------------")
@@ -168,19 +169,14 @@ def load_json_from_file(path, filename):
         data = json.load(file)
         return data if isinstance(data, list) else []
 
-def merge_data(existing_data, new_data, duplicates):
+def merge_data(existing_data, new_data):
     """기존 데이터와 새로운 데이터를 병합합니다."""
-    existing_ids = {item['article_id'] for item in existing_data if isinstance(item, dict)}
-    if new_data['article_id'] in existing_ids:
-        print("여기서 중복이 발생하였습니다.", new_data['article_id'])
-        duplicates += 1
-    else:    
-        existing_data.append(new_data)
-    return existing_data, duplicates
+    existing_data.append(new_data)
+    return existing_data
 
-base_url = "https://support.broadcom.com/web/ecx/search?searchString=&activeType=all&from=0&sortby=post_time&orderBy=desc&pageNo=1&aggregations=%5B%7B%22type%22%3A%22productname%22%2C%22filter%22%3A%5B%22CLARITY+PPM+SAAS+FOR+ITG%22%2C%22clarity-client-automation%22%2C%22Clarity+PPM+On+Premise+-+Application%22%2C%22clarity-project-and-portfolio-management-ppm-on-premise%22%2C%22Clarity+SaaS%22%2C%22STARTER+PACK-CLARITY+PPM%22%2C%22Clarity+Business+Service+Insight%22%2C%22Clarity+PPM+SaaS%22%2C%22Clarity+PPM+SaaS+-+Application%22%2C%22Clarity%22%2C%22CLARITY+PPM+FEDERAL%22%2C%22CLARITY+PPM+FOR+ITG%22%2C%22Clarity+Project+and+Portfolio+Management+%28PPM%29+On+Premise%22%2C%22Clarity+Project+and+Portfolio+Management+%28PPM%29+On+Demand%22%2C%22Clarity+PPM+On+Premise%22%2C%22VMware%22%5D%7D%2C%7B%22type%22%3A%22post_time%22%2C%22filter%22%3A%5B%22All+Time%22%5D%7D%2C%7B%22type%22%3A%22_type%22%2C%22filter%22%3A%5B%22notification_docs%22%5D%7D%5D&uid=d042dbba-f8c4-11ea-beba-0242ac12000b&resultsPerPage=50&exactPhrase=&withOneOrMore=&withoutTheWords=&pageSize=50&language=en&state=13&suCaseCreate=false"
+base_url = "https://support.broadcom.com/web/ecx/search?searchString=&activeType=all&from=0&sortby=post_time&orderBy=desc&pageNo=1&aggregations=%5B%7B%22type%22%3A%22productname%22%2C%22filter%22%3A%5B%22CLARITY+PPM+SAAS+FOR+ITG%22%2C%22clarity-client-automation%22%2C%22Clarity+PPM+On+Premise+-+Application%22%2C%22clarity-project-and-portfolio-management-ppm-on-premise%22%2C%22Clarity+SaaS%22%2C%22STARTER+PACK-CLARITY+PPM%22%2C%22Clarity+Business+Service+Insight%22%2C%22Clarity+PPM+SaaS%22%2C%22Clarity+PPM+SaaS+-+Application%22%2C%22Clarity%22%2C%22CLARITY+PPM+FEDERAL%22%2C%22CLARITY+PPM+FOR+ITG%22%2C%22Clarity+Project+and+Portfolio+Management+%28PPM%29+On+Premise%22%2C%22Clarity+Project+and+Portfolio+Management+%28PPM%29+On+Demand%22%2C%22Clarity+PPM+On+Premise%22%2C%22VMware+vSphere+ESXi%22%2C%22VMware%22%2C%22VMware+vCenter+Server%22%2C%22VMware+Aria+Suite%22%2C%22VMware+NSX+Networking%22%5D%7D%2C%7B%22type%22%3A%22post_time%22%2C%22filter%22%3A%5B%22All+Time%22%5D%7D%2C%7B%22type%22%3A%22_type%22%2C%22filter%22%3A%5B%22notification_docs%22%5D%7D%5D&uid=d042dbba-f8c4-11ea-beba-0242ac12000b&resultsPerPage=50&exactPhrase=&withOneOrMore=&withoutTheWords=&pageSize=50&language=en&state=4&suCaseCreate=false"
 start_date_str ='2024-05-20'
-end_date_str ='2024-05-23'
+end_date_str ='2024-6-7'
 #start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
 #end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
 
@@ -189,11 +185,9 @@ filename = 'test_PN_1.json'
 existing_data = load_json_from_file(path, filename)
 
 detail_new_datas = crawl_posts(base_url,start_date_str,end_date_str)
-duplicates = 0
 for detail_data in detail_new_datas:
-    update_data, duplicates = merge_data(existing_data, detail_data, duplicates)
+    update_data = merge_data(existing_data, detail_data)
     save_json_to_file(update_data, path, filename)
 
 
 print(f"데이터가 {filename} 파일로 저장되었습니다.")
-print(f"중복된 데이터 수: {duplicates}")

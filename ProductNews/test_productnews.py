@@ -68,30 +68,25 @@ def list_to_json(lst):
             json_items.append(str(item))
     return "[" + ", ".join(json_items) + "]"
 
-def is_login_page(response):
+def is_login_page(url):
     """로그인 페이지인지 확인하는 함수"""
-    # 로그인 페이지를 식별할 수 있는 특정 요소를 찾아서 판단
-    login_indicators = ["login", "sign in", "username", "password"]  # 로그인 페이지를 식별할 수 있는 단어들
-    if any(indicator in response.text.lower() for indicator in login_indicators):
-        return True
-    return False
+    return 'login' in url.lower()
 
+
+# product_News에서 가끔 login을 해야 상세내역을 볼 수 있는 게시글이 있음. 해당 부분을 제외할 수 있게끔 예외처리해야함.
 def extract_data_from_webpage(url):
     """웹 페이지에서 데이터를 추출합니다."""
 
     try:
         response = requests.get(url, allow_redirects=True)
         response.raise_for_status()  # 요청이 성공했는지 확인
-        
+        print(response.url)
         # 최종 URL이 로그인 페이지인지 확인
-        if "login" in response.url.lower():
+        if is_login_page(response.url):
             print(f"로그인 페이지로 리디렉션됨: {response.url}")
             return None
+        
 
-        # 페이지 내용으로 로그인 페이지인지 확인
-        if is_login_page(response):
-            print(f"로그인 페이지 발견: {url}")
-            return None
         
     except requests.HTTPError as e:
         if response.status_code == 404:
@@ -109,24 +104,13 @@ def extract_data_from_webpage(url):
     #response = requests.get(url)
     soup = BeautifulSoup(html, 'html.parser')
 
-
-    #username = soup.find(attrs= {"style": "text-align: center"})
-    username = soup.select("#myBroadcomLogin > div > div")[0].get_text()
-    #//*[@id="js-mainContentBox"]/content/app-init/form/div/label[1]
-    #myBroadcomLogin > div > div
-    print(username)
-
-    if username == "Username":
-        print("login page")
-        return None
     
     # class="example"인 모든 <div> 태그를 찾습니다.
     div_tags = soup.find_all('div', {"class": "card-body"})
     title = soup.find("p", {"class": "ecx-page-title-default undefined mb-0"}).decode_contents()
     solution_id_tag = soup.find_all("p", {"class": "edit-solution-text"})
     solution_id = solution_id_tag[1].decode_contents()
-    print(solution_id,"\n\n\n\n")
-    print("zzz", title,"\n\n\n\n")
+
 
 
     # 각 <div> 태그 안의 모든 내용을 추출합니다.
@@ -144,13 +128,6 @@ def extract_data_from_webpage(url):
     }
 
     return data
-
-url = "https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/legal-notices/0/22527"
-#url = "https://access.broadcom.com/default/ui/v1/signin/"
-
-data = extract_data_from_webpage(url)
-
-print(data)
 
 
 

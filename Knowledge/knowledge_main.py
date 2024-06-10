@@ -204,7 +204,7 @@ duplicates = 0
 for detail_data in detail_new_datas:
     update_data, duplicates = merge_data(existing_data, detail_data, duplicates)
     save_json_to_file(update_data, path, filename)
-    print(f"중복된 데이터 수: {duplicates}")
 
+print(f"중복된 데이터 수: {duplicates}")
 print(f"데이터가 {filename} 파일로 저장되었습니다.")
 print("끝!")

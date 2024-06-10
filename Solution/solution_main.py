@@ -113,6 +113,7 @@ def crawl_posts(base_url, start_date_str, end_date_str):
     print("Crawl_posts function is start~ \n\n\n")
     start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
     end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+    end_date = end_date.replace(hour=23, minute=59, second=59)
 
     if start_date == end_date:
         end_date = start_date + timedelta(days=1) - timedelta(seconds=1)
@@ -123,7 +124,7 @@ def crawl_posts(base_url, start_date_str, end_date_str):
     driver = webdriver.Chrome(options=chrome_options)
     driver.get(base_url)
     driver.maximize_window()    
-    sleep(3)
+    sleep(2)
 
     posts_urls = get_posts_within_date_range(driver, start_date, end_date)
     all_posts_details = []
@@ -165,18 +166,18 @@ def load_json_from_file(path, filename):
 
 def merge_data(existing_data, new_data, duplicates):
     """기존 데이터와 새로운 데이터를 병합합니다."""
-    existing_ids = {item['solution_id'] for item in existing_data if isinstance(item, dict)}
-    if new_data['solution_id'] in existing_ids:
-        print("여기에서 중복되었습니다.: ", new_data['solution_id'])
+    existing_ids = {item['title'] for item in existing_data if isinstance(item, dict)}
+    if new_data['title'] in existing_ids:
+        print("여기에서 중복되었습니다.: ", new_data['title'])
         duplicates += 1
     else:    
         existing_data.append(new_data)
-    return existing_data, duplicates
+    return existing_data
 
 
 base_url = "https://support.broadcom.com/web/ecx/search?searchString=&activeType=all&from=0&sortby=post_time&orderBy=desc&pageNo=1&aggregations=%5B%7B%22type%22%3A%22productname%22%2C%22filter%22%3A%5B%22CLARITY+PPM+SAAS+FOR+ITG%22%2C%22clarity-client-automation%22%2C%22Clarity+PPM+On+Premise+-+Application%22%2C%22clarity-project-and-portfolio-management-ppm-on-premise%22%2C%22Clarity+SaaS%22%2C%22STARTER+PACK-CLARITY+PPM%22%2C%22Clarity+Business+Service+Insight%22%2C%22Clarity+PPM+SaaS%22%2C%22Clarity+PPM+SaaS+-+Application%22%2C%22Clarity%22%2C%22CLARITY+PPM+FEDERAL%22%2C%22CLARITY+PPM+FOR+ITG%22%2C%22Clarity+Project+and+Portfolio+Management+%28PPM%29+On+Premise%22%2C%22Clarity+Project+and+Portfolio+Management+%28PPM%29+On+Demand%22%2C%22Clarity+PPM+On+Premise%22%2C%22VMware+vSphere+ESXi%22%2C%22VMware%22%2C%22VMware+vCenter+Server%22%2C%22VMware+Aria+Suite%22%2C%22VMware+NSX+Networking%22%5D%7D%2C%7B%22type%22%3A%22post_time%22%2C%22filter%22%3A%5B%22All+Time%22%5D%7D%2C%7B%22type%22%3A%22_type%22%2C%22filter%22%3A%5B%22solutions_doc%22%5D%7D%5D&uid=d042dbba-f8c4-11ea-beba-0242ac12000b&resultsPerPage=50&exactPhrase=&withOneOrMore=&withoutTheWords=&pageSize=50&language=en&state=2&suCaseCreate=false"
-start_date_str ='2010-05-1'
-end_date_str ='2024-06-1'
+start_date_str ='2024-05-29'
+end_date_str ='2024-05-30'
 #start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
 #end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
 
@@ -187,13 +188,12 @@ existing_data = load_json_from_file(path, filename)
 detail_new_datas = crawl_posts(base_url,start_date_str,end_date_str)
 
 duplicates = 0
-
 for detail_new_data in detail_new_datas:
-    update_data, duplicates = merge_data(existing_data, detail_new_data, duplicates)
-    save_json_to_file(update_data, path, filename)
+    update_data = merge_data(existing_data, detail_new_data, duplicates)
+    save_json_to_file(detail_new_data, path, filename, duplicates)
 
-
-print(f"데이터가 {filename} 파일로 저장되었습니다.")
 print(f"중복된 데이터 수: {duplicates}")
+print(f"데이터가 {filename} 파일로 저장되었습니다.")
+
 
 # 반복문을 이용하여 월별로 데이터 저장

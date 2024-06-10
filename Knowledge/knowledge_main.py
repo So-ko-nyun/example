@@ -138,7 +138,7 @@ def crawl_posts(base_url, start_date_str, end_date_str):
     for post in posts_urls:
         print("-----------------------------------------")
         print("get_post_details function is start~ and page is: ", i ," \n\n\n")
-        #print(get_post_details(post.get('url')))
+        
         
         url = post.get('url')
         date = post.get('date')
@@ -192,8 +192,6 @@ def merge_data(existing_data, new_data, duplicates):
 base_url = "https://support.broadcom.com/web/ecx/search?searchString=&activeType=all&from=0&sortby=post_time&orderBy=desc&pageNo=1&aggregations=%5B%7B%22type%22%3A%22productname%22%2C%22filter%22%3A%5B%22CLARITY+PPM+SAAS+FOR+ITG%22%2C%22clarity-client-automation%22%2C%22Clarity+PPM+On+Premise+-+Application%22%2C%22clarity-project-and-portfolio-management-ppm-on-premise%22%2C%22Clarity+SaaS%22%2C%22STARTER+PACK-CLARITY+PPM%22%2C%22Clarity+Business+Service+Insight%22%2C%22Clarity+PPM+SaaS%22%2C%22Clarity+PPM+SaaS+-+Application%22%2C%22Clarity%22%2C%22CLARITY+PPM+FEDERAL%22%2C%22CLARITY+PPM+FOR+ITG%22%2C%22Clarity+Project+and+Portfolio+Management+%28PPM%29+On+Premise%22%2C%22Clarity+Project+and+Portfolio+Management+%28PPM%29+On+Demand%22%2C%22Clarity+PPM+On+Premise%22%2C%22VMware%22%5D%7D%2C%7B%22type%22%3A%22post_time%22%2C%22filter%22%3A%5B%22All+Time%22%5D%7D%2C%7B%22type%22%3A%22_type%22%2C%22filter%22%3A%5B%22knowledge_articles_doc%22%5D%7D%5D&uid=d042dbba-f8c4-11ea-beba-0242ac12000b&resultsPerPage=50&exactPhrase=&withOneOrMore=&withoutTheWords=&pageSize=50&language=en&state=11&suCaseCreate=false"
 start_date_str ='2024-04-16'
 end_date_str ='2024-04-23'
-#start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
-#end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
 
 path = '/Users/chujiu/Coding/DataCrawling/BeautifulSouppp/for_test/test_KB'
 filename = 'test_KB_0416_0423.json'

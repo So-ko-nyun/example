@@ -129,8 +129,11 @@ def extractDataPN(url, date, post_type, id, serverUrl):
     
     #send구현
     #serverurl = "http://127.0.0.1:5500/for_test/page.html"
-    response = requests.post(serverUrl, json=data)
-    print(response.status_code)
+    try:
+        response = requests.post(serverUrl, json=data)
+        print(response.status_code)
+    except:
+        print("fail to send")
     
     return data
     
@@ -279,9 +282,11 @@ def extractDataKB(url, date, post_type, serverUrl):
         "contents": contents,
     }
     
-    #serverurl = "http://127.0.0.1:8000"
-    response = requests.post(serverUrl, json=data)
-    print(response.status_code)
+    try:
+        response = requests.post(serverUrl, json=data)
+        print(response.status_code)
+    except:
+        print("fail to send")
     
     return data
 

@@ -87,12 +87,13 @@ dataUri = "/external/article?articleNumber="
 authUri = "/external/article?articleNumber="
 username = "chuchu"
 password = "kiki"
-startDate = '2024-6-16'
-endDate = '2024-06-17'
+startDate = '2024-6-19'
+endDate = '2024-06-19'
 
 
 start_time = time.time()
 hi = VMwareCrawler(baseUrl, dataUri, authUri, username, password)
+serverUrl = "http://127.0.0.1:5500/for_test/page.html"
 toto = hi.doCrawling(startDate,endDate)
 end_time = time.time()
 final_time = end_time - start_time

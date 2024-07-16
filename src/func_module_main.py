@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from time import sleep
 from func_module import *
+import os
 
 
 def startCrawls(baseUrl, start_date_str, end_date_str, serverUrl):
@@ -90,7 +91,7 @@ def startCrawls(baseUrl, start_date_str, end_date_str, serverUrl):
     return all_posts_details
 
 
-def startCrawlsToday(baseUrl):
+def startCrawlsToday(baseUrl, serverUrl):
     """Selenium을 사용하여 주어진 날짜 범위 내의 게시물 URL을 크롤링"""
     print("---------------------------------------------------------")
     print("오늘 날짜의 크롤링을 시작합니다. \n\n\n")
@@ -130,7 +131,7 @@ def startCrawlsToday(baseUrl):
             flag = False
 
         if flag:
-            data = extractDataKB(url, date, post_type)
+            data = extractDataKB(url, date, post_type, serverUrl)
             if data is not None:
                 all_posts_details.append(data)
             else:
@@ -140,7 +141,7 @@ def startCrawlsToday(baseUrl):
                 errors.append(url)
                 continue
         else:
-            data = extractDataPN(url, date, post_type, id)
+            data = extractDataPN(url, date, post_type, id, serverUrl)
             if data is not None:
                 all_posts_details.append(data)
             else:

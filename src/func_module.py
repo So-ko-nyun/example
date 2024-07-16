@@ -89,9 +89,9 @@ def extractDataPN(url, date, post_type, id, serverUrl):
 
     try:
 
-        group_contents = soup.find_all("div", {"class": "card-body"})
-        if group_contents is None:
-            print("group_contents가 존재하지않습니다.")
+        contents_group = soup.find_all("div", {"class": "card-body"})
+        if contents_group is None:
+            print("contents_group가 존재하지않습니다.")
             return None
         title = soup.find("p", {"class": "ecx-page-title-default undefined mb-0"})
         if title is not None:
@@ -100,7 +100,7 @@ def extractDataPN(url, date, post_type, id, serverUrl):
             title = None
         product = soup.find("p", class_="edit-solution-text")
         if product is not None:
-            product = product.get_text()
+            product = product.get_text().replace("'", "''")
         else:
             product = None
         update_date = date.strftime("%Y-%m-%d")
@@ -115,16 +115,16 @@ def extractDataPN(url, date, post_type, id, serverUrl):
             content = div_tag.decode_contents()  # 태그 자체를 포함하여 내용 모두 추출
             if content is None:
                 content = None
-            content_list.append({"title": None, "text": content})
+            content_list.append({"title": "None", "text": content.replace("'", "''")})
         return content_list
 
     data = {
-        "title": title,
-        "id": id,
-        "type": post_type,
-        "date": update_date,
+        "title": title.replace("'", "''"),
+        "docId": id.replace("'", "''"),
+        "docType": post_type.replace("'", "''"),
+        "updateDate": update_date.replace("'", "''"),
         "products": [product],
-        "contents": extract_content(group_contents),
+        "contents": extract_content(contents_group),
     }
 
     try:
@@ -150,61 +150,71 @@ def extractDataKB(url, date, post_type, serverUrl):
     soup = BeautifulSoup(response.content, "html.parser")
 
     try:
-        title = soup.find("h3", {"class": "wolken-h3"}).decode_contents()
+        title = soup.find(
+            "h3", {"class": "wolken-h3"}
+        ).decode_contents()  # title: 게시글 제목
         if title is None:
             title = None
         article_id = (
             soup.find("h4", {"class": "wolken-h4"})
             .decode_contents()
             .strip("Article ID: ")
-        )
+        )  # 게시글 article_id
         if article_id is None:
             article_id = None
-        update_date = date.strftime("%Y-%m-%d")
+        update_date = date.strftime("%Y-%m-%d")  # 게시글 업데이트 시간
 
-        group_contents = soup.find_all(
+        contents_group = soup.find_all(
             "div", class_="article-detail-card-content wolken-h5"
-        )
-        if group_contents is None:
-            group_contents = None
-        group_products = soup.find_all("span", class_="product-chip")
-        if group_products is None:
-            group_products = None
-        group_headers = soup.find_all("div", class_="article-detail-card-header")
-        if group_headers is None:
-            group_headers = None
+        )  # 상세설명 부분 모음(group), html코드부분까지 포함되어있음
+        if contents_group is None:
+            contents_group = None
+        products_group = soup.find_all(
+            "span", class_="product-chip"
+        )  # product헤더의 제품 목록들
+        if products_group is None:
+            products_group = None
+        headers_group = soup.find_all(
+            "div", class_="article-detail-card-header"
+        )  # 소제목(header)들의 모음(group), ex: Products, Issue, Attachments
+        if headers_group is None:
+            headers_group = None
 
         products = []
 
-        for group_product in group_products:
-            product = group_product.get_text()
-            products.append(product)
+        for div_product in products_group:
+            product = div_product.get_text()
+            products.append(product.replace("'", "''"))
 
         contents = []
 
-        del group_headers[0]
+        del headers_group[0]
 
-        for div_header, div_content in zip(group_headers, group_contents):
+        for div_header, div_content in zip(
+            headers_group, contents_group
+        ):  # 그룹화되어있는 헤더와 콘텐츠들을 각각의 내용에 상응하게끔 합치는 과정
             try:
-                title = div_header.find("h4", class_="wolken-h4")
-                if title is not None:
-                    title = title.get_text()
+                h4title = div_header.find("h4", class_="wolken-h4")
+                if h4title is not None:
+                    h4title = h4title.get_text()
                 else:
-                    title = "There is no title"
+                    h4title = "There is no title"
             except:
-                title = None
+                h4title = None
 
             text = div_content.decode_contents()
             if text is None:
                 text = "None"
-            contents.append({"title": title, "text": text})
+            contents.append(
+                {"title": h4title.replace("'", "''"), "text": text.replace("'", "''")}
+            )
 
-        # 만약 Attachments헤더의 파일을 다운로드 할 경우 주석해제
+        """     # Attachments헤더의 파일들 다운로드할 경우 주석해제
         download_links = soup.find_all('a', class_='attachment-download flex-row row-align-center-center', attrs={'data-uniquefileid': True, 'onclick': True})
         if not download_links:
             download_links = "There is no download files"
         else:
-            download_folder = os.path.join(os.getcwd(), 'downloads') # 기본 경로 설정
+            download_folder = os.path.join(os.getcwd(), 'downloads')
             os.makedirs(download_folder, exist_ok=True)
             
             chrome_options = webdriver.ChromeOptions()
@@ -218,7 +228,6 @@ def extractDataKB(url, date, post_type, serverUrl):
             
             driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
             driver.get(url)
-            driver.maximize_window()
             sleep(1)
             
             download_links = driver.find_elements(By.CSS_SELECTOR, "a[data-uniquefileid][onclick]")
@@ -264,17 +273,17 @@ def extractDataKB(url, date, post_type, serverUrl):
             driver.quit()
 
             print("id: ", article_id, ", ", download_title, ": files downloaded.", update_date)
-            
+            """
 
     except:
         print("해당 주소에서 오류 발생: ", url)
         return None
 
     data = {
-        "title": title,
-        "id": article_id,
-        "type": post_type,
-        "date": update_date,
+        "title": title.replace("'", "''"),
+        "docId": article_id.replace("'", "''"),
+        "docType": post_type.replace("'", "''"),
+        "updateDate": update_date.replace("'", "''"),
         "products": products,
         "contents": contents,
     }

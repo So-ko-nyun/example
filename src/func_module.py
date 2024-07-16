@@ -11,18 +11,20 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 
+
 def escape_string(value):
     """이스케이프 문자를 처리하는 함수."""
     escape_chars = {
-        '\\': '\\\\',
+        "\\": "\\\\",
         '"': '\\"',
-        '\b': '\\b',
-        '\f': '\\f',
-        '\n': '\\n',
-        '\r': '\\r',
-        '\t': '\\t'
+        "\b": "\\b",
+        "\f": "\\f",
+        "\n": "\\n",
+        "\r": "\\r",
+        "\t": "\\t",
     }
-    return ''.join(escape_chars.get(char, char) for char in value)
+    return "".join(escape_chars.get(char, char) for char in value)
+
 
 def dict_to_json(data):
     """딕셔너리를 JSON 문자열로 변환합니다."""
@@ -42,8 +44,11 @@ def dict_to_json(data):
             json_value = "false"
         else:
             json_value = str(value)
-        json_items.append(f'"{escape_string(key)}": {json_value}')  # 키도 이스케이프 문자 처리
+        json_items.append(
+            f'"{escape_string(key)}": {json_value}'
+        )  # 키도 이스케이프 문자 처리
     return "{" + ", ".join(json_items) + "}"
+
 
 def list_to_json(lst):
     """리스트를 JSON 문자열로 변환합니다."""
@@ -70,23 +75,23 @@ def extractDataPN(url, date, post_type, id, serverUrl):
     """웹 페이지에서 데이터를 추출합니다."""
     try:
         response = requests.get(url)
-        if 'login' in response.url:
+        if "login" in response.url:
             return None
         response.raise_for_status()
-        
+
     except requests.HTTPError as e:
         if response.status_code == 404:
             print("Page not found")
         else:
             print(f"HTTP 에러 발생: {e}")
         return None
-    soup = BeautifulSoup(response.content, 'html.parser')
-    
+    soup = BeautifulSoup(response.content, "html.parser")
+
     try:
-        
-        div_tags = soup.find_all('div', {"class": "card-body"})
-        if div_tags is None:
-            print("div_tags가 존재하지않습니다.")
+
+        group_contents = soup.find_all("div", {"class": "card-body"})
+        if group_contents is None:
+            print("group_contents가 존재하지않습니다.")
             return None
         title = soup.find("p", {"class": "ecx-page-title-default undefined mb-0"})
         if title is not None:
@@ -98,7 +103,7 @@ def extractDataPN(url, date, post_type, id, serverUrl):
             product = product.get_text()
         else:
             product = None
-        update_date = date.strftime('%Y-%m-%d')
+        update_date = date.strftime("%Y-%m-%d")
     except:
         print("해당 주소에서 오류 발생: ", url)
         return None
@@ -110,33 +115,25 @@ def extractDataPN(url, date, post_type, id, serverUrl):
             content = div_tag.decode_contents()  # 태그 자체를 포함하여 내용 모두 추출
             if content is None:
                 content = None
-            content_list.append({
-                "title": None,
-                "text": content})
+            content_list.append({"title": None, "text": content})
         return content_list
-    
-        
+
     data = {
         "title": title,
         "id": id,
         "type": post_type,
         "date": update_date,
         "products": [product],
-        "contents": extract_content(div_tags)
-
+        "contents": extract_content(group_contents),
     }
-    
-    
-    #send구현
-    #serverurl = "http://127.0.0.1:5500/for_test/page.html"
+
     try:
         response = requests.post(serverUrl, json=data)
         print(response.status_code)
     except:
         print("fail to send")
-    
+
     return data
-    
 
 
 def extractDataKB(url, date, post_type, serverUrl):
@@ -150,63 +147,64 @@ def extractDataKB(url, date, post_type, serverUrl):
         else:
             print(f"HTTP 에러 발생: {e}")
         return None
-    soup = BeautifulSoup(response.content, 'html.parser')
+    soup = BeautifulSoup(response.content, "html.parser")
 
-    
     try:
         title = soup.find("h3", {"class": "wolken-h3"}).decode_contents()
         if title is None:
             title = None
-        article_id = soup.find("h4", {"class": "wolken-h4"}).decode_contents().strip("Article ID: ")
+        article_id = (
+            soup.find("h4", {"class": "wolken-h4"})
+            .decode_contents()
+            .strip("Article ID: ")
+        )
         if article_id is None:
             article_id = None
-        update_date = date.strftime('%Y-%m-%d') 
-        
-        div_tags = soup.find_all('div', class_='article-detail-card-content wolken-h5')
-        if div_tags is None:
-            div_tags = None
-        div_products = soup.find_all('span', class_= 'product-chip')
-        if div_products is None:
-            div_products = None
-        div_titles = soup.find_all('div', class_="article-detail-card-header")
-        if div_titles is None:
-            div_titles = None
-            
+        update_date = date.strftime("%Y-%m-%d")
+
+        group_contents = soup.find_all(
+            "div", class_="article-detail-card-content wolken-h5"
+        )
+        if group_contents is None:
+            group_contents = None
+        group_products = soup.find_all("span", class_="product-chip")
+        if group_products is None:
+            group_products = None
+        group_headers = soup.find_all("div", class_="article-detail-card-header")
+        if group_headers is None:
+            group_headers = None
+
         products = []
-        
-        for div_product in div_products:
-            product = div_product.get_text()
+
+        for group_product in group_products:
+            product = group_product.get_text()
             products.append(product)
 
         contents = []
 
-        del div_titles[0]
+        del group_headers[0]
 
-        for div_title,div_tag in zip(div_titles, div_tags):
+        for div_header, div_content in zip(group_headers, group_contents):
             try:
-                title = div_title.find('h4', class_="wolken-h4")
+                title = div_header.find("h4", class_="wolken-h4")
                 if title is not None:
                     title = title.get_text()
                 else:
                     title = "There is no title"
             except:
                 title = None
-                
-            text = div_tag.decode_contents()
+
+            text = div_content.decode_contents()
             if text is None:
                 text = "None"
-            contents.append({
-                'title': title,
-                'text': text
-            })   
-            
-            
-            
+            contents.append({"title": title, "text": text})
+
+        # 만약 Attachments헤더의 파일을 다운로드 할 경우 주석해제
         download_links = soup.find_all('a', class_='attachment-download flex-row row-align-center-center', attrs={'data-uniquefileid': True, 'onclick': True})
         if not download_links:
             download_links = "There is no download files"
         else:
-            download_folder = os.path.join(os.getcwd(), 'downloads')
+            download_folder = os.path.join(os.getcwd(), 'downloads') # 기본 경로 설정
             os.makedirs(download_folder, exist_ok=True)
             
             chrome_options = webdriver.ChromeOptions()
@@ -220,6 +218,7 @@ def extractDataKB(url, date, post_type, serverUrl):
             
             driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
             driver.get(url)
+            driver.maximize_window()
             sleep(1)
             
             download_links = driver.find_elements(By.CSS_SELECTOR, "a[data-uniquefileid][onclick]")
@@ -266,12 +265,10 @@ def extractDataKB(url, date, post_type, serverUrl):
 
             print("id: ", article_id, ", ", download_title, ": files downloaded.", update_date)
             
-            
+
     except:
         print("해당 주소에서 오류 발생: ", url)
         return None
-
-    
 
     data = {
         "title": title,
@@ -281,21 +278,11 @@ def extractDataKB(url, date, post_type, serverUrl):
         "products": products,
         "contents": contents,
     }
-    
+
     try:
         response = requests.post(serverUrl, json=data)
         print(response.status_code)
     except:
         print("fail to send")
-    
+
     return data
-
-
-def save_json_to_file(data, path, filename):
-    """딕셔너리 데이터를 JSON 파일로 저장합니다."""
-    if not os.path.exists(path):
-        os.makedirs(path)
-    json_string = dict_to_json(data)
-    file_path = os.path.join(path, filename)
-    with open(file_path, 'w', encoding='utf-8') as file:
-        file.write(json_string)
